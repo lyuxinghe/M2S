@@ -1,14 +1,14 @@
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, sosfiltfilt
 
 # Bandpass filter
 # For: Environmental noise removal by applying a bandpass filter in the 4-45 Hz range
 # fs: sample rate, lowcut/ highcut: band cutoffs
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=3):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    b, a = butter(order, [low, high], fs=fs, btype='band')
-    filtered = lfilter(b, a, data)
+    sos = butter(order, [low, high], analog=False, fs=fs, btype='band', output='sos')
+    filtered = sosfiltfilt(sos, data)
     return filtered
 
 if __name__ == "__main__":
