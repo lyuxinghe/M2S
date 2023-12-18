@@ -2,6 +2,7 @@ import pyedflib
 import numpy as np
 import os
 import glob
+import pickle
 
 class Subject_Session_Data:
         def __init__(self, f, file_count, participant_number, session_number, marks, block_sample_ranges):
@@ -40,8 +41,10 @@ class Subject_Session_Data:
                 #         for j in range(3):
                 #                 axis[i,j].plot([x for x in range(len(self.data_dictionary[self.signal_labels[3*i+j]]))], self.data_dictionary[self.signal_labels[3*i+j]]) 
                 #                 axis[i,j].set_title("First_signal_"+self.signal_labels[3*i + j]) 
-                
-def load():
+
+
+
+def load_raw_all():
         work_dir = os.path.dirname(os.path.dirname(os.getcwd()))
         dataset_dir = os.path.join(work_dir, "enterface06_EMOBRAIN", "Data")
         dataset_common_dir = os.path.join(dataset_dir, "Common")
@@ -174,3 +177,16 @@ def load():
         #                 print("Mean time for one trial:", sum(seconds[key])/len(seconds[key]))
 
         return data_list
+
+def load_raw_single(file_index):
+        pkl_file_name = 'eeg_' + str(file_index) + '.pkl' 
+        with open(pkl_file_name, 'rb') as file:
+                loaded_data = pickle.load(file)
+        return loaded_data
+
+def load_clean_single(file_index):
+        pkl_file_name = 'clean_' + str(file_index) + '.pkl' 
+        with open(pkl_file_name, 'rb') as file:
+                loaded_data = pickle.load(file)
+        return loaded_data
+

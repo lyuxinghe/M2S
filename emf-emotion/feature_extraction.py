@@ -1,8 +1,8 @@
 import numpy as np
 from scipy import signal
 import math
+from scipy.fft import fft
 
-from preprocess import butter_bandpass_filter
 
 class EEGFeatureExtraction:
     
@@ -22,19 +22,22 @@ class EEGFeatureExtraction:
             print("Number of truncations:", self.num_truncations)
             print("Target channels:", self.target_channels)
 
-    def extract_features(self):
-        results = np.zeros(shape = (self.num_samples, len(self.target_channels) * self.num_truncations))
-        for sample_id, sample in enumerate(self.data):
-            for channel_id, channel in enumerate(self.target_channels):
-                assert channel in sample.signal_labels, channel + " target channel is not present in the sample data!"
-                channel_signal = sample.data_dictionary[channel]
-                for band_id, truncation_range in enumerate(sample.block_sample_ranges):
-                    truncation = channel_signal[truncation_range[0]:truncation_range[1]]
-                    filtered = butter_bandpass_filter(truncation, 4, 45, self.fs)
-                    f, Pxx_den = signal.welch(truncation, self.fs, nperseg=256, noverlap=128)
-                    #print Pxx_den.shape, Pxx_den
-                
-                    results[sample_id][channel_id*self.num_truncations + band_id] = math.log(np.max(Pxx_den))
 
-        return results
-    
+
+def get_features(raw_data_list, clean_data_list, selected_channels):
+    features = []
+    for cur_dataset, cur_clean in zip(raw_data_list, clean_data_list):
+        dataset_features = []
+        for channel in selected_channels:
+            channel_features = []
+            assert channel in cur_dataset.signal_labels, channel + " target channel is not present in the sample data!"
+            #channel_signal = cur_dataset.data_dictionary[channel]
+            for band_id, truncation_range in enumerate(cur_dataset.block_sample_ranges):
+                cur_channel_index = cur_dataset.signal_labels.index(channel)
+                truncation = cur_clean[cur_channel_index][truncation_range[0]:truncation_range[1]]
+                channel_features.append(fft(truncation))
+            dataset_features.append(channel_features)
+        features.append(dataset_features)
+
+    features = np.hstack(np.hstack(features))
+    return features
